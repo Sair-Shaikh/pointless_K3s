@@ -1,0 +1,5 @@
+AGENTS.md
+tmp/
+.venv/
+*.sage.py
+data/weil_polynomials/preAT/*
