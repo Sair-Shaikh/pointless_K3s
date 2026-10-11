@@ -7,7 +7,7 @@ from pathlib import Path
 from sage.rings.polynomial.weil.all import WeilPolynomials
 
 PRE_AT = Path(__file__).resolve().parents[1] / "data/weil_polynomials/preAT"
-field_sizes = [2, 3, 4, 5, 7, 8, 9, 11, 13, 17, 17, 19]
+field_sizes = [2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19]
 
 def passes_elsenhans_jahnel(pol):
     """Test the residual value at -1 after removing all factors of t - 1."""
