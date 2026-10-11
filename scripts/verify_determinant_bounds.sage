@@ -41,7 +41,7 @@ def verify_negativity(P, scale_factor):
     Verify `P(4*pi*m/scale_factor) < 0` for every integer `m >= 2`.
     
     It suffices to check that `P` has negative leading coefficient and that the bound holds
-    for those values not exceeding the largest positive root of P.
+    for those values not exceeding the largest positive root of `P`.
     """
     roots = [r for r, _ in P.roots(ring=AA) if r > 0]
     if P(0) <= 0 or not roots or P.leading_coefficient() > 0:
@@ -52,6 +52,7 @@ def verify_negativity(P, scale_factor):
     pi_interval = RealIntervalField(128).pi()
     pi_lo = QQ(pi_interval.lower())
     pi_hi = QQ(pi_interval.upper())
+
     m = 2
     while True:
         lo = 4*m*pi_lo/scale_factor
@@ -86,7 +87,14 @@ def verify_bound(rank, scale_factor, coefficients, determinant_bound):
     if rank % 2 and minimum % 2:
         minimum += 1
 
-    return minimum >= determinant_bound
+    RIF = RealIntervalField(128)
+    t = 2 * RIF.pi() / scale_factor
+    if P(2*t) <= 0:
+        raise ValueError('Require positive value at shell 1')
+    root20bound = ZZ((analytic_bound / (1 + 20 * P(2*t) * exp(-t) / P(0))^2).ceil())
+    if rank % 2 and root20bound % 2:
+        root20bound += 1
+    return minimum >= determinant_bound, root20bound
 
 def main(filename):
     with open(filename, newline='') as f:
@@ -95,8 +103,9 @@ def main(filename):
             scale_factor = QQ(row['scale_factor'])
             coefficients = [QQ(Fraction(c.strip())) for c in row['coefficients'].strip('[]').split(',')]
             bound = ZZ(row['determinant_bound'])
-            if verify_bound(rank, scale_factor, coefficients, bound):
-                print(f"Verified rank {rank} bound = {bound}")               
+            verify, root20bound = verify_bound(rank, scale_factor, coefficients, bound)
+            if verify:
+                print(f"Verified rank {rank} bound = {bound}; for <= 20 roots, bound = {root20bound}")               
             else:
                 print(f"Failed rank {rank} bound = {bound}")
 
