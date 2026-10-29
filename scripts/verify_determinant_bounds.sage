@@ -1,4 +1,5 @@
-"""Exact verifier for determinant bounds on even rootless lattices using Poisson summation.
+"""
+Exact verifier for determinant bounds on even rootless lattices using Poisson summation.
 
 Expects as input a CSV with columns: rank, scale_factor, determinant_bound, coefficients
 

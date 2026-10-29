@@ -119,6 +119,8 @@ def main(filename):
             determinant = QQ(row['determinant'])
             genus_str = row['genus']
             gram_matrix = matrix_from_upper_triangular(sage_eval(row['matrix']))
+            print()
+            print(latex(gram_matrix))
             verify = verify_genus(determinant, genus_str, gram_matrix) and verify_certificate(gram_matrix)
             if verify:
                 print(f'Verified determinant {determinant} genus {genus_str}')

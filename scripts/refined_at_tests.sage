@@ -1,7 +1,8 @@
-"""Keep the Weil polynomials that survive the refined Artin--Tate tests.
+"""
+Identify the Weil polynomials that meet the refined Artin--Tate criteria.
 
-From ``pointless_K3s``, run ``sage scripts/refined_at_tests.sage``.
-Pass field sizes, such as ``16 17``, to run only those files.
+To run from the root of the repo: ``sage scripts/refined_at_tests.sage``
+To run only selected field sizes, pass a list such as ``16 17``.
 """
 
 import sys
@@ -26,12 +27,14 @@ ARTIN_TATE_TESTS = [
     (base_degree, extension_degree,
      sum(t ** (base_degree * power) for power in range(extension_degree)))
     for extension_degree in range(2, 73)
-    if all(prime <= 19 for prime, _ in ZZ(extension_degree).factor())
+        if all(prime <= 19 for prime, _ in ZZ(extension_degree).factor())
     for base_degree in range(1, 72 // extension_degree + 1)
 ]
 
 def split_cyclotomic(f):
-    """Separate the cyclotomic factors from the residual polynomial."""
+    """
+    Separate the cyclotomic factors from the residual polynomial.
+    """
     factors = []
     for order, cyclotomic in CYC.items():
         multiplicity = f.valuation(cyclotomic)
@@ -40,10 +43,11 @@ def split_cyclotomic(f):
             f //= cyclotomic ** multiplicity
     return tuple(factors), f
 
-
 @lru_cache(None)
 def relevant_tests(factors):
-    """Skip tests whose algebraic part already meets the determinant bound."""
+    """
+    Skip tests whose algebraic part already meets the determinant bound.
+    """
     relevant = []
     for base_degree, extension_degree, test_polynomial in ARTIN_TATE_TESTS:
         invariant_rank, rank, u, norm = 1, 0, ZZ(1), ZZ(1)
@@ -64,14 +68,12 @@ def relevant_tests(factors):
                 relevant.append((test_polynomial, rank, glue * norm))
     return relevant
 
-
 def survives(f):
     factors, residual = split_cyclotomic(f)
     for h, rank, algebraic_bound in relevant_tests(factors):
         if algebraic_bound * abs(residual.resultant(h)) < DELTA[rank]:
             return False
     return True
-
 
 def run(path):
     output = ROOT / "postAT" / path.name
