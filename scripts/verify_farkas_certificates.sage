@@ -41,7 +41,7 @@ def verify_genus(determinant, genus_str, gram_matrix):
     # Break down genus string.
     genus_tmp = genus_str.strip('[]').split(',')
     genus_2 = []
-    genus_odd = []
+    genus_odd = {}
     for i in genus_tmp:
         if i == "U":
             genus_2.append(i)
@@ -51,16 +51,24 @@ def verify_genus(determinant, genus_str, gram_matrix):
         if denom % 2 == 0:
             genus_2.append(f)
         else:
-            genus_odd.append(f)
+            p, k = denom.is_prime_power(get_data=True)
+            if k == 0:
+                raise ValueError('Bad local genus symbol')
+            if p not in genus_odd:
+                genus_odd[p] = []
+            genus_odd[p].append(f)
 
     # Check odd part of genus.
-    for i in genus_odd:
-        num, p = i.as_integer_ratio()
-        if p % 2 == 0 or not p.is_prime():
-            raise ValueError('Bad local genus symbol')
-        loc = genus.local_symbol(p).symbol_tuple_list()[-1][-1]
-        if loc != legendre_symbol(num, p):
-            return False
+    for p, l in genus_odd.items():
+        loc = genus.local_symbol(p).symbol_tuple_list()
+        if len(l) == 1:
+            if loc[-1][-1] != legendre_symbol(l[0].numerator(), p):
+                return False
+        else:
+            if len(loc) != 2 or loc[-1][0] != l[-1].denom().valuation(p) or len(l) != 2:
+                return False
+            if loc[-1][-1] != legendre_symbol(l[0].numerator() * l[1].numerator(), p):
+                 return False
 
     # Check 2-part of genus.
     loc = genus.local_symbol(2).symbol_tuple_list()
@@ -74,15 +82,19 @@ def verify_genus(determinant, genus_str, gram_matrix):
         if (genus.local_symbol(2).gram_matrix()[-1,-1] // q) % q != num % q:
             return False
     else:
-        if len(loc) != 3 or loc[1][0] != 1 or loc[2][0] != 2 or genus_2[0].denom() != 4 or genus_2[1].denom() != 2:
-            return False
-        mat = genus.local_symbol(2).canonical_symbol()
-        if mat[0][2] != (-1)^len(genus_odd):
-            return False
-        a = genus_2[0].numer()
-        b = genus_2[1].numer()
-        if mat[1][4] - a + b != 2:
-            return False
+        if len(loc) == 2:
+            if loc != [[0,6,3,0,0],[1,2,1,1,2]]:
+                return False
+        else:
+            if len(loc) != 3 or loc[1][0] != 1 or loc[2][0] != 2 or genus_2[0].denom() != 4 or genus_2[1].denom() != 2:
+                return False
+            mat = genus.local_symbol(2).canonical_symbol()
+            if mat[0][2] != (-1)^len(genus_odd):
+                return False
+            a = genus_2[0].numer()
+            b = genus_2[1].numer()
+            if mat[1][4] - a + b != 2:
+                return False
     return True
     
 def verify_certificate(gram_matrix):
